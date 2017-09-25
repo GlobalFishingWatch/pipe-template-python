@@ -1,0 +1,22 @@
+version: '2'
+# [TODO]: Replace pipe-template with pipe-codename in this file, where codename
+# is the codename for your project.
+services:
+  pipeline:
+    image: gfw/pipe-template
+    build: .
+    volumes:
+      - ".:/opt/project"
+      - "gcp:/root/.config/"
+
+  gcloud:
+    image: gfw/pipe-template
+    build: .
+    entrypoint: gcloud
+    volumes:
+      - "gcp:/root/.config/"
+
+volumes:
+  gcp:
+
+

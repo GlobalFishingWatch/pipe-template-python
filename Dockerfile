@@ -25,6 +25,11 @@ RUN  \
   gcloud config set component_manager/disable_update_check true && \
   gcloud config set metrics/environment github_docker_image
 
+
+# Install extra packages
+RUN pip install ujson more_itertools statistics pytz s2sphere numpy https://codeload.github.com/GlobalFishingWatch/pipe-tools/tar.gz/67cad5b97f850a5546d59149cec969885d8acde5
+
+
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
 

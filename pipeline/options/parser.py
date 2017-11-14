@@ -57,5 +57,7 @@ def parse():
         standard_options.runner = 'DataflowRunner'
         setup_options = pipeline_options.view_as(beam.SetupOptions)
         setup_options.setup_file = './setup.py'
+        setup_options.requirements_file = options.requirements_file
+
 
     return (options, pipeline_options)

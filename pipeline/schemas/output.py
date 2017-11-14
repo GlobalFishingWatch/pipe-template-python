@@ -1,36 +1,23 @@
-from apache_beam.io.gcp.internal.clients import bigquery
+from .utils import SchemaBuilder
 
 def build():
-    schema = bigquery.TableSchema()
 
-    field = bigquery.TableFieldSchema()
-    field.name = "id"
-    field.type = "INTEGER"
-    field.mode="REQUIRED"
-    schema.fields.append(field)
+    builder = SchemaBuilder()
 
-    field = bigquery.TableFieldSchema()
-    field.name = "timestamp"
-    field.type = "TIMESTAMP"
-    field.mode="REQUIRED"
-    schema.fields.append(field)
+    builder.add("id", "STRING")
+    builder.add("timestamp", "TIMESTAMP")
+    builder.add("timestamp_delta_s", "FLOAT")
+    builder.add("distance_m", "FLOAT")
+    builder.add("reported_speed_delta_mps", "FLOAT")
+    builder.add("reported_course_delta_degrees", "FLOAT")
+    builder.add("implied_speed_delta_mps", "FLOAT")
+    builder.add("implied_course_delta_degrees", "FLOAT")
+    builder.add("local_time_h", "FLOAT")
+    builder.add("length_of_day_h", "FLOAT")
+    builder.add("distance_from_shore_km", "FLOAT")
+    builder.add("distance_to_prev_anchorage", "FLOAT")
+    builder.add("distance_to_next_anchorage", "FLOAT")
+    builder.add("time_to_prev_anchorage", "FLOAT")
+    builder.add("time_to_next_anchorage", "FLOAT")
 
-    field = bigquery.TableFieldSchema()
-    field.name = "lat"
-    field.type = "FLOAT"
-    field.mode="REQUIRED"
-    schema.fields.append(field)
-
-    field = bigquery.TableFieldSchema()
-    field.name = "lon"
-    field.type = "FLOAT"
-    field.mode="REQUIRED"
-    schema.fields.append(field)
-
-    field = bigquery.TableFieldSchema()
-    field.name = "score"
-    field.type = "FLOAT"
-    field.mode="REQUIRED"
-    schema.fields.append(field)
-
-    return schema
+    return builder.schema

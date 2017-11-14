@@ -20,3 +20,12 @@ def setup(parser):
         help='Project on which the source bigquey queries are run. This also specifies where the dataflow jobs will run.',
         required=True,
     )
+    google.add_argument(
+        '--requirements_file',
+        help='File containing install requirements.',
+        default="./requirements.txt",
+    )
+    # google.add_argument(
+    #     '--extra_package',
+    #     help='Path to extra package.',
+    # )

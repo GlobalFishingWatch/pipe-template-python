@@ -1,13 +1,18 @@
 from setuptools import setup, find_packages
 
-# [TODO] Customize these variables as needed
-PROJECT_NAME = 'pipe-template'
+# Customize these variables as needed
+PROJECT_NAME = 'pipe-nnet'
 PROJECT_VERSION = '1.0.0'
-PROJECT_DESCRIPTION = 'Apache Beam pipeline which computes something.'
+PROJECT_DESCRIPTION = 'Apache Beam pipeline which computes features for NNET.'
 DEPENDENCIES = [
-    "statistics==1.0.3.5", # This is a sample dependency
-]
-# [TODO] End of customization block
+    "ujson",
+    "statistics",
+    "more_itertools",
+    "s2sphere",
+    "pipe-tools==0.1"
+    ]
+
+# End of customization block
 
 # Frozen dependencies for the google cloud dataflow dependency
 DATAFLOW_PINNED_DEPENDENCIES = [

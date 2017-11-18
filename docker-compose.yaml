@@ -1,21 +1,25 @@
 version: '2'
 
 services:
-  pipeline:
+  create_features:
     image: gfw/pipe-nnet
     build: .
+    entrypoint: ["python", "-m", "pipeline"]  
     volumes:
       - ".:/opt/project"
       - "gcp:/root/.config/"
-
+  shard_features:
+    image: gfw/pipe-nnet
+    build: .
+    entrypoint: ["python", "-m", "shard_features"]  
+    volumes:
+      - ".:/opt/project"
+      - "gcp:/root/.config/"
   gcloud:
     image: gfw/pipe-nnet
     build: .
     entrypoint: gcloud
     volumes:
       - "gcp:/root/.config/"
-
 volumes:
   gcp:
-
-

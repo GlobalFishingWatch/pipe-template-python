@@ -1,1 +1,1 @@
-https://codeload.github.com/GlobalFishingWatch/pipe-tools/tar.gz/67cad5b97f850a5546d59149cec969885d8acde5
+https://api.github.com/repos/GlobalFishingWatch/pipe-tools/tarball/refactor-partition-writers

@@ -4,8 +4,8 @@ from pipeline.transforms.resample import Resample
 from pipeline.transforms.create_features import CreateFeatures
 from pipeline.transforms.trim_stationary_periods import TrimStationaryPeriods
 from pipeline.transforms.sink import Sink
-from pipeline.objects.location_record import LocationRecordsFromDicts
-from pipeline.objects.feature import FeaturesToDicts
+from pipeline.objects.location_record import LocationRecord
+from pipeline.objects.feature import Feature
 from pipeline.schemas.output import build as build_output_schema
 from apache_beam import io
 from apache_beam.pvalue import AsList
@@ -24,7 +24,7 @@ class PipelineDefinition():
     def __init__(self, options):
         self.options = options
 
-    def create_queries(self):
+    def create_queries(self, start_date, end_date):
         template = """
         SELECT
           FLOAT(TIMESTAMP_TO_MSEC(timestamp)) / 1000  AS timestamp,
@@ -35,7 +35,7 @@ class PipelineDefinition():
           course                     AS course,
           distance_from_shore / 1000 AS distance_from_shore_km
         FROM
-          TABLE_DATE_RANGE([world-fishing-827:{table}.], 
+          TABLE_DATE_RANGE([{table}.], 
                                 TIMESTAMP('{start:%Y-%m-%d}'), TIMESTAMP('{end:%Y-%m-%d}'))
         WHERE
           lat   IS NOT NULL AND lat >= -90.0 AND lat <= 90.0 AND
@@ -44,14 +44,10 @@ class PipelineDefinition():
           course IS NOT NULL AND course >= 0 AND course < 360 AND
           distance_from_shore IS NOT NULL AND distance_from_shore >= 0 AND distance_from_shore <= 20000.0
         """
-        start_date = datetime.datetime.strptime(self.options.start_date, '%Y-%m-%d') 
-        start_window = start_date - datetime.timedelta(days=1)
-        end_date= datetime.datetime.strptime(self.options.end_date, '%Y-%m-%d') 
-        while start_window <= end_date:
-            end_window = min(start_window + datetime.timedelta(days=999), end_date)
-            query = template.format(table=self.options.source_table, start=start_window, end=end_window)
-            yield query
-            start_window = end_window + datetime.timedelta(days=1)
+        # Pad start date by one day to allow warm up.
+        start = start_date - datetime.timedelta(days=1)
+        return LocationRecord.create_queries(self.options.source_table, start, end_date, template)
+
 
 
     def build(self, pipeline):
@@ -66,18 +62,21 @@ class PipelineDefinition():
             schema=build_output_schema()
             )
 
+        start_date = datetime.datetime.strptime(self.options.start_date, '%Y-%m-%d')
+        end_date= datetime.datetime.strptime(self.options.end_date, '%Y-%m-%d') 
+
 
         sources = [(pipeline | "Read_{}".format(i) >> io.Read(io.gcp.bigquery.BigQuerySource(query=x)))
-                        for (i, x) in enumerate(self.create_queries())]
+                        for (i, x) in enumerate(self.create_queries(start_date, end_date))]
 
         (
             sources
             | Flatten()
-            | LocationRecordsFromDicts()
+            | LocationRecord.FromDict()
             | Resample(increment_min=15, max_gap_min=120)
             | TrimStationaryPeriods(max_distance_km=0.8, min_period_minutes=60*48)
-            | CreateFeatures()
-            | FeaturesToDicts()
+            | CreateFeatures() # start_date, end_date) #TODO: trim by start, end dates
+            | Feature.ToDict()
             | Map(lambda elem: TimestampedValue(elem, elem['timestamp']))
             | "WriteToSink" >> sink
         )

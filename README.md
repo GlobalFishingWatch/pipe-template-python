@@ -31,16 +31,32 @@ instructions there.
 
 ### Examples
 
-    docker-compose run pipeline \
+    docker-compose run create_features \
                           --start-date 2016-01-01 \
                           --end-date 2016-01-31 \
-                          --source-table pipeline_classify_p_p516_daily \
+                          --source-table world-fishing-827:pipeline_classify_p_p516_daily \
                           --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test \
                           --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
                           remote \
                           --project world-fishing-827 \
                           --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
                           --job_name pipe-nnet-test \
+                          --max_num_workers 200
+                          --requirements_file ./requirements.txt
+
+
+Sharding.
+
+    docker-compose run shard_features \
+                          --start-date 2016-01-01 \
+                          --end-date 2016-01-31 \
+                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test \
+                          --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
+                          --shard-location gs://world-fishing-827-dev-ttl30d/features/test-python-features \
+                          remote \
+                          --project world-fishing-827 \
+                          --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
+                          --job_name pipe-nnet-shard-test \
                           --max_num_workers 200
                           --requirements_file ./requirements.txt
 

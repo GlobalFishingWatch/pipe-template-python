@@ -27,8 +27,7 @@ RUN  \
 
 
 # Install extra packages
-RUN pip install ujson more_itertools statistics pytz s2sphere numpy https://codeload.github.com/GlobalFishingWatch/pipe-tools/tar.gz/67cad5b97f850a5546d59149cec969885d8acde5
-
+RUN pip install ujson more_itertools statistics pytz s2sphere numpy https://api.github.com/repos/GlobalFishingWatch/pipe-tools/tarball/refactor-partition-writers
 
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]

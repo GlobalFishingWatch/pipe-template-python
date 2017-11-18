@@ -9,7 +9,7 @@ DEPENDENCIES = [
     "statistics",
     "more_itertools",
     "s2sphere",
-    "pipe-tools==0.1"
+    "pipe_tools"
     ]
 
 # End of customization block

@@ -26,7 +26,6 @@ class ByteCoder(beam.coders.Coder):
 
     def encode(self, value):
         return value['value']
-        # return str(value['timestamp'])
 
     def decode(self, value):
         raise NotImplementedError
@@ -34,66 +33,6 @@ class ByteCoder(beam.coders.Coder):
     def is_deterministic(self):
         return True
 
-
-def _int64_feature(value):
-  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
-def _floats_feature(values):
-  return tf.train.Feature(float_list=tf.train.FloatList(value=values))
-
-
-# class ProtbufCoder(beam.coders.Coder):
-#     """A coder used for writing features"""
-
-#     def encode(self, x):
-#         x['values'] = list(x['values'])
-#         x['values'][0] = namedtuples._datetime_to_s(x['values'][0])
-        
-#         # See https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/core/example/feature.proto
-#         # https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/examples/how_tos/reading_data/convert_to_records.py
-#         # example = tf.train.Example(features=tf.train.Features(feature={
-#         #     'mmsi': _int64_feature(int(x['id'])),
-#         #     'movement_features' : _floats_feature(x['values'])
-#         #     }))
-#         example = tf.train.SequenceExample()
-#         example.context.feature["mmsi"].int64_list.value.append(sequence_length)
-
-#         movement_features = example.feature_lists.feature_list["movement_features"]
-
-#         for values in x['values']:
-#             movement_features.features.add().feature_list.value.append(
-#                 tf.train.Feature(float_list=tf.train.FloatList(value=vals))
-#                 )
-
-#     # 3D length
-#     sequence_length = len(input_sequence)
-
-
-#     input_characters = example_sequence.feature_lists.feature_list["input_characters"]
-#     output_characters = example_sequence.feature_lists.feature_list["output_characters"]
-
-#     for input_character, output_character in zip(input_sequence,
-#                                                           output_sequence):
-
-#         if input_sequence is not None:
-#             input_characters.feature.add().int64_list.value.append(input_character)
-
-#         if output_characters is not None:
-#             output_characters.feature.add().int64_list.value.append(output_character)
-
-
-
-#         example = tf.train.Example(features=tf.train.Features(feature={
-#             'mmsi': _int64_feature(int(x['id'])),
-#             'movement_features' : _floats_feature(x['values'])
-#             }))
-#         return example.SerializeToString()
-
-#     def decode(self, value):
-#         raise NotImplementedError
-
-#     def is_deterministic(self):
-#         return True
 
 
 class ExtractIdsFn(beam.CombineFn):
@@ -116,7 +55,7 @@ class ExtractIdsFn(beam.CombineFn):
     return sorted(ids)
 
 
-def build_examples(item):
+def build_example(item):
     vessel_id, features_seq = item
     example = tf.train.SequenceExample()
     example.context.feature["mmsi"].int64_list.value.append(int(vessel_id))
@@ -125,7 +64,6 @@ def build_examples(item):
         movement_features = example.feature_lists.feature_list["movement_features"]
         feats = [namedtuples._datetime_to_s(values[1])] + list(values[2:])
         movement_features.feature.add().float_list.value.extend(feats)
-
     return JSONDict(id=vessel_id, value=example.SerializeToString())
 
 
@@ -160,7 +98,7 @@ class PipelineDefinition():
 
         (features
             | GroupById()
-            | Map(build_examples)
+            | Map(build_example)
             | WriteToKeyPartitionedTFFiles('id', shard_pseudo_path, coder=ByteCoder(), 
                                             shard_name_template='', file_name_suffix='.tfrecord')
         )

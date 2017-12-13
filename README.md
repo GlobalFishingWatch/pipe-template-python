@@ -1,9 +1,15 @@
-# Events pipeline [TODO: Replace with the name of your pipeline]
+# NNet Pipeline
 
-[TODO: Replace this short introduction]
+* `create_features` - create nnet features sharded by time.
 
-This repository contains the fishing events pipeline, a dataflow pipeline which
-extracts summarized fishing events from a collection of scored AIS messages.
+* `shard_features` - shard nnet featues by mmsi
+
+* `run_inference` - see classification pipeline for now.
+
+* `annotate_results` - waiting on unique message id.
+
+This pipeline generates features for the nnet.
+
 
 # Running
 
@@ -16,10 +22,13 @@ pipeline. No other dependency is required.
 ## Setup
 
 The pipeline reads it's input from BigQuery, so you need to first authenticate
-with your google cloud account inside the docker images. To do that, you need
-to run this command and follow the instructions:
+with your google cloud account inside the docker images. If you have already
+authenticated another pipeline that uses this same structure and the docker
+volume `gcp` exists, you don't need to do anything. Otherwise you need to run
+the following two commands and follow the instructions:
 
 ```
+docker volume create --name=gcp
 docker-compose run gcloud auth application-default login
 ```
 
@@ -41,23 +50,37 @@ instructions there.
                           --project world-fishing-827 \
                           --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
                           --job_name pipe-nnet-test \
-                          --max_num_workers 200
-                          --requirements_file ./requirements.txt
+                          --max_num_workers 200 \
+                          --requirements_file ./requirements.txt 
+
+
+    docker-compose run create_features \
+                          --start_date=2016-01-01 \
+                          --end_date=2016-12-31 \
+                          --source_table=world-fishing-827:pipeline_classify_p_p516_daily \
+                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_2016 \
+                          --project=world-fishing-827 \
+                          --temp_location=gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
+                          --job_name=pipe-nnet-test \
+                          --max_num_workers 200 \
+                          --requirements_file=./requirements.txt \
+                          --setup_file=./setup.py \
+                          --runner=DataflowRunner
 
 
 Sharding.
 
     docker-compose run shard_features \
                           --start-date 2016-01-01 \
-                          --end-date 2016-01-31 \
-                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test \
+                          --end-date 2016-12-31 \
+                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test_1 \
                           --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
-                          --shard-location gs://world-fishing-827-dev-ttl30d/features/test-python-features \
+                          --shard-location gs://world-fishing-827-dev-ttl30d/features_2016/test-python-features \
                           remote \
                           --project world-fishing-827 \
                           --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
                           --job_name pipe-nnet-shard-test \
-                          --max_num_workers 200
+                          --max_num_workers 200 \
                           --requirements_file ./requirements.txt
 
 

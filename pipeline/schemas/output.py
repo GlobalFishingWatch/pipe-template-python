@@ -19,5 +19,6 @@ def build():
     builder.add("distance_to_next_anchorage", "FLOAT")
     builder.add("time_to_prev_anchorage", "FLOAT")
     builder.add("time_to_next_anchorage", "FLOAT")
-
+    builder.add("num_neighboring_vessels", "FLOAT")
+    
     return builder.schema

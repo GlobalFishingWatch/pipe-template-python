@@ -9,6 +9,7 @@ DEPENDENCIES = [
     "statistics",
     "more_itertools",
     "s2sphere",
+    "tensorflow",
     "pipe_tools"
     ]
 

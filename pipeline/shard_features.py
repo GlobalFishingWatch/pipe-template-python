@@ -3,6 +3,9 @@ import apache_beam as beam
 import logging
 import pipeline.options.parser as parser
 
+#TOOD: use Pauls options.
+#TODO, two parsers.
+
 def run():
     (options, pipeline_options) = parser.parse(shard_only=True)
 
@@ -16,3 +19,4 @@ def run():
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.DEBUG)
     run()
+

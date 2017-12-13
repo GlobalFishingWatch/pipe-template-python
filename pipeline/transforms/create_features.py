@@ -18,7 +18,8 @@ def mean_time(t0, t1):
 Implied = namedtuple("Implied",
     ["t", "lat", "lon", "reported_speed", "reported_course",
     "implied_speed", "implied_course", "d_shore", 
-     "d_next_anchorage", "t_next_anchorage", "d_prev_anchorage", "t_prev_anchorage"])
+     "d_next_anchorage", "t_next_anchorage", "d_prev_anchorage", "t_prev_anchorage",
+     "n_nbrs"])
 
 class CreateFeatures(PTransform):
 
@@ -41,9 +42,10 @@ class CreateFeatures(PTransform):
             t_next_anchorage = 0
             d_prev_anchorage = 0
             t_prev_anchorage = 0
+            n_nbrs = 0
             yield Implied(t, lat, lon, reported_speed, reported_course,
                          implied_speed, implied_course, d_shore, d_next_anchorage, 
-                         t_next_anchorage, d_prev_anchorage, t_prev_anchorage)
+                         t_next_anchorage, d_prev_anchorage, t_prev_anchorage, n_nbrs)
 
 
     def create_features(self, item):
@@ -74,10 +76,12 @@ class CreateFeatures(PTransform):
                 length_of_day_h               = 0, # TODO: implement as function of lat, timestamp
                 # TODO, maybe just use existing distance to port
                 distance_from_shore_km        = mean(imp0.d_shore, imp1.d_shore),
-                distance_to_next_anchorage              = mean(imp0.d_next_anchorage, imp1.d_next_anchorage),
-                time_to_next_anchorage              = mean(imp0.t_next_anchorage, imp1.t_next_anchorage),
-                distance_to_prev_anchorage              = mean(imp0.d_prev_anchorage, imp1.d_prev_anchorage),
-                time_to_prev_anchorage              = mean(imp0.t_prev_anchorage, imp1.t_prev_anchorage))
+                distance_to_next_anchorage    = mean(imp0.d_next_anchorage, imp1.d_next_anchorage),
+                time_to_next_anchorage        = mean(imp0.t_next_anchorage, imp1.t_next_anchorage),
+                distance_to_prev_anchorage    = mean(imp0.d_prev_anchorage, imp1.d_prev_anchorage),
+                time_to_prev_anchorage        = mean(imp0.t_prev_anchorage, imp1.t_prev_anchorage),
+                num_neighboring_vessels       = mean(imp0.n_nbrs, imp1.n_nbrs),
+                )
             imp0 = imp1
 
 

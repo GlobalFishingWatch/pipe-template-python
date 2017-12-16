@@ -1,0 +1,18 @@
+[
+    {
+      "name": "mmsi",
+      "type": "INTEGER"
+    },
+    {
+      "name": "timestamp",
+      "type": "TIMESTAMP"
+    },
+    {
+      "name": "idx",
+      "type": "INTEGER"
+    },
+    {
+      "name": "tag",
+      "type": "STRING"
+    }
+]

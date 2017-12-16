@@ -2,9 +2,10 @@ version: '2'
 # [TODO]: Replace pipe-template with pipe-codename in this file, where codename
 # is the codename for your project.
 services:
-  pipeline:
+  pipe_template:
     image: gfw/pipe-template
     build: .
+    entrypoint: python -m pipe_template
     volumes:
       - ".:/opt/project"
       - "gcp:/root/.config/"
@@ -16,7 +17,27 @@ services:
     volumes:
       - "gcp:/root/.config/"
 
+  py.test:
+    image: gfw/pipe-template
+    build: .
+    entrypoint: py.test
+    volumes:
+      - ".:/opt/project"
+      - "gcp:/root/.config/"
+
+  bash:
+    image: gfw/pipe-template
+    build: .
+    entrypoint: /bin/bash
+    volumes:
+      - ".:/opt/project"
+      - "gcp:/root/.config/"
+
+# Use an external named volume so that we can share gcp auth across containers
+# Before first use, this volume must be manually created with
+#   docker volume create --name=gcp
 volumes:
   gcp:
+    external: true
 
 

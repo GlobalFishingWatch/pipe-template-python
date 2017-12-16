@@ -1,13 +1,29 @@
-from setuptools import setup, find_packages
+#!/usr/bin/env python
 
-# [TODO] Customize these variables as needed
-PROJECT_NAME = 'pipe-template'
-PROJECT_VERSION = '1.0.0'
-PROJECT_DESCRIPTION = 'Apache Beam pipeline which computes something.'
+"""
+Setup script for pipe-orbcomm
+"""
+
+import codecs
+import os
+
+from setuptools import find_packages
+from setuptools import setup
+
+PACKAGE_NAME='pipe_template'
+package = __import__(PACKAGE_NAME)
+
+
 DEPENDENCIES = [
-    "statistics==1.0.3.5", # This is a sample dependency
+    "pytest",
+    "nose",
+    "ujson",
+    "pytz",
+    "udatetime",
+    "newlinejson",
+    "pipe-tools==0.1.2",
+    "jinja2-cli",
 ]
-# [TODO] End of customization block
 
 # Frozen dependencies for the google cloud dataflow dependency
 DATAFLOW_PINNED_DEPENDENCIES = [
@@ -53,13 +69,26 @@ DATAFLOW_PINNED_DEPENDENCIES = [
     "urllib3==1.22",
 ]
 
+with codecs.open('README.md', encoding='utf-8') as f:
+    readme = f.read().strip()
+
+with codecs.open('requirements.txt', encoding='utf-8') as f:
+    DEPENDENCY_LINKS=[line for line in f]
+
 setup(
-    name=PROJECT_NAME,
-    version=PROJECT_VERSION,
-    description=PROJECT_DESCRIPTION,
-    author="Global Fishing Watch",
-    author_email="info@globalfishingwatch.org",
-    license="Apache 2",
-    packages=find_packages(),
+    author=package.__author__,
+    author_email=package.__email__,
+    description=package.__doc__.strip(),
+    include_package_data=True,
     install_requires=DEPENDENCIES + DATAFLOW_PINNED_DEPENDENCIES,
+    keywords='Template',
+    license="Apache 2.0",
+    long_description=readme,
+    name=PACKAGE_NAME,
+    packages=find_packages(exclude=['test*.*', 'tests']),
+    url=package.__source__,
+    version=package.__version__,
+    zip_safe=True,
+    dependency_links=DEPENDENCY_LINKS
 )
+

@@ -16,6 +16,8 @@ repository ready to customize.
 You'll need to take a look at a couple of files that you need to customize
 before starting:
 
+* rename pipe_template to pipe_myproject (call it whatever your project name is)
+
 * Customize the name and description of your project at `setup.py` and the
   docker image name at `docker-compose.yaml`. Look for `[TODO]` marks for
 instructions on what to change and how.

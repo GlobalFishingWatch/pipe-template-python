@@ -25,6 +25,8 @@ instructions on what to change and how in these files
     - `setup.py`
     - `pipe_template.__init__.py`
     - `docker-compose.yaml`
+    - `airflow/pipe-template-dag.py`
+    - `airflow/post_install.sh`
 
 * Copy this file to a temporary name, delete it when you are done
 

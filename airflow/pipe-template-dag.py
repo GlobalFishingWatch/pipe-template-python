@@ -7,6 +7,8 @@ from airflow.contrib.operators.dataflow_operator import DataFlowPythonOperator
 from airflow.contrib.sensors.gcs_sensor import GoogleCloudStorageObjectSensor
 from airflow.models import Variable
 
+# [TODO]: Replace pipe_template with pipe_myproject below
+
 CONNECTION_ID = 'google_cloud_default'
 
 config = Variable.get('pipe_template', deserialize_json=True)

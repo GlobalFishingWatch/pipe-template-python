@@ -10,8 +10,9 @@ import os
 from setuptools import find_packages
 from setuptools import setup
 
-PACKAGE_NAME='pipe_template'
-package = __import__(PACKAGE_NAME)
+# [TODO]: Edit the package name here.  Note the '-' vs '_'
+PACKAGE_NAME='pipe-template'
+package = __import__('pipe_template')
 
 
 DEPENDENCIES = [
@@ -21,7 +22,7 @@ DEPENDENCIES = [
     "pytz",
     "udatetime",
     "newlinejson",
-    "pipe-tools==0.1.2",
+    "pipe-tools==0.1.3",
     "jinja2-cli",
 ]
 
@@ -81,7 +82,6 @@ setup(
     description=package.__doc__.strip(),
     include_package_data=True,
     install_requires=DEPENDENCIES + DATAFLOW_PINNED_DEPENDENCIES,
-    keywords='Template',
     license="Apache 2.0",
     long_description=readme,
     name=PACKAGE_NAME,

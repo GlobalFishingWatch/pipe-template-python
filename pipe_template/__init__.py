@@ -1,14 +1,15 @@
 """
-Tools for parsing and normalizing AIS from Orbcomm using dataflow
+Template file for creating micropiplines for Global Fishing Watch
 """
 
+# [TODO]: Review and edit everything in this file
 
 __version__ = '0.0.1'
 __author__ = 'Paul Woods'
 __email__ = 'paul@globalfishingwatch.org'
 __source__ = 'https://github.com/GlobalFishingWatch/pipe-template-python'
 __license__ = """
-Copyright 2017 Global Fishing Watch Inc.
+Copyright 2018 Global Fishing Watch Inc.
 Authors:
 
 Paul Woods <paul@globalfishingwatch.org>

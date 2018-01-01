@@ -29,6 +29,36 @@ The pipeline includes a CLI that can be used to start both local test runs and
 remote full runs. Just run `docker-compose run pipeline --help` and follow the
 instructions there.
 
+## Development
+To run inside docker, use the following.  docker-compose mounts the current directory, so 
+your changes are available immediately wihtout having to re-run docker-compose build.
+If you change any pythin dependencies, then you will need to re-run build
+
+```
+docker-compose build
+docker-compose run py.test tests
+```
+
+
+For a development environment outside of docker
+```
+virtualenv venv
+source venv/bin/actiavte
+pip install --process-dependency-links -e .
+py.test tests
+```
+
+## Airflow
+
+This pipeline is designed to be executed from Airflow using the GFW custom pipeline installation support
+
+To install this pipeline from the locally built docker container, run the following from within the airflow server 
+(might need sudo for this)
+
+```
+./utils/install_dag.sh gfw/pipe-template
+```
+
 # License
 
 Copyright 2017 Global Fishing Watch

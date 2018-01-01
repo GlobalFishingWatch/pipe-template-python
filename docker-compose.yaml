@@ -1,11 +1,10 @@
 version: '2'
-# [TODO]: Replace pipe-template with pipe-codename in this file, where codename
-# is the codename for your project.
+# [TODO]: Replace pipe-template with pipe-myproject in this file
+
 services:
   pipe_template:
     image: gfw/pipe-template
     build: .
-    entrypoint: python -m pipe_template
     volumes:
       - ".:/opt/project"
       - "gcp:/root/.config/"

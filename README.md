@@ -41,24 +41,11 @@ instructions there.
 ### Examples
 
     docker-compose run create_features \
-                          --start-date 2016-01-01 \
-                          --end-date 2016-01-31 \
-                          --source-table world-fishing-827:pipeline_classify_p_p516_daily \
-                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test \
-                          --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
-                          remote \
-                          --project world-fishing-827 \
-                          --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
-                          --job_name pipe-nnet-test \
-                          --max_num_workers 200 \
-                          --requirements_file ./requirements.txt 
-
-
-    docker-compose run create_features \
-                          --start_date=2016-01-01 \
-                          --end_date=2016-12-31 \
+                          --start_date=2016-01-07 \
+                          --end_date=2016-01-14 \
                           --source_table=world-fishing-827:pipeline_classify_p_p516_daily \
-                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_2016 \
+                          --visits_table=world-fishing-827:machine_learning_dev_ttl_30d.visits_events_sharded \
+                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
                           --project=world-fishing-827 \
                           --temp_location=gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
                           --job_name=pipe-nnet-test \
@@ -68,14 +55,30 @@ instructions there.
                           --runner=DataflowRunner
 
 
+    docker-compose run create_features \
+                          --start_date=2012-01-01 \
+                          --end_date=2017-12-31 \
+                          --source_table=world-fishing-827:pipeline_classify_p_p516_daily \
+                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
+                          --project=world-fishing-827 \
+                          --temp_location=gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
+                          --job_name=pipe-nnet-test \
+                          --max_num_workers 200 \
+                          --requirements_file=./requirements.txt \
+                          --setup_file=./setup.py \
+                          --runner=DataflowRunner
+
+
+
+
 Sharding.
 
     docker-compose run shard_features \
-                          --start-date 2016-01-01 \
-                          --end-date 2016-12-31 \
-                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test_1 \
+                          --start-date 2012-01-01 \
+                          --end-date 2017-12-31 \
+                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
                           --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
-                          --shard-location gs://world-fishing-827-dev-ttl30d/features_2016/test-python-features \
+                          --shard-location gs://world-fishing-827-dev-ttl30d/features/test-py-features-all \
                           remote \
                           --project world-fishing-827 \
                           --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \

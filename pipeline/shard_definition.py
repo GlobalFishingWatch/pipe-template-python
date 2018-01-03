@@ -103,8 +103,6 @@ class PipelineDefinition():
                                             shard_name_template='', file_name_suffix='.tfrecord')
         )
 
-        # TODO: just do this as another query, or using generalized reduction. Don't need 
-        # groupby
         (features
             | beam.CombineGlobally(ExtractIdsFn())
             | beam.FlatMap(lambda x: x)

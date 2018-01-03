@@ -5,6 +5,7 @@ from pipeline.objects.namedtuples import _s_to_datetime, _datetime_to_s
 from pipeline.objects.feature import Feature
 import tensorflow as tf
 import numpy as np
+import pytest
 
 def fake_feature(i, offset=0):
     args = {'id' : i,
@@ -23,27 +24,26 @@ def fake_feature(i, offset=0):
 
 
 
-# TODO use parameterize instead
-def test_round_trips():
-    for base in range(50, 200, 11):
-        item = (base, [fake_feature(base, i) for i in range(0, 1000, 200)])
-        expected = []
-        for x in item[1]:
-            x = list(x)
-            x[1] = _datetime_to_s(x[1])
-            expected.append(x[1:])
-        expected = np.array(expected)
-        serialized = build_example(item)['value']
-        deserialized = read_example(serialized, 14 + 1)
-        print(deserialized)
-        with tf.Session() as sess:
-            mmsi = deserialized[0]['mmsi'].eval()
-            features = deserialized[1]['movement_features'].eval()
-        print mmsi
-        print features
-        print expected
-        assert mmsi == base
-        assert np.allclose(expected, features)
+@pytest.mark.parametrize("base", range(50, 200, 11))
+def test_round_trips(base):
+    item = (base, [fake_feature(base, i) for i in range(0, 1000, 200)])
+    expected = []
+    for x in item[1]:
+        x = list(x)
+        x[1] = _datetime_to_s(x[1])
+        expected.append(x[1:])
+    expected = np.array(expected)
+    serialized = build_example(item)['value']
+    deserialized = read_example(serialized, 14 + 1)
+    print(deserialized)
+    with tf.Session() as sess:
+        mmsi = deserialized[0]['mmsi'].eval()
+        features = deserialized[1]['movement_features'].eval()
+    print mmsi
+    print features
+    print expected
+    assert mmsi == base
+    assert np.allclose(expected, features)
 
 
 def read_example(serialized_example, num_features):

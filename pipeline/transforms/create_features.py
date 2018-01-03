@@ -2,7 +2,9 @@ from apache_beam import PTransform
 from apache_beam import GroupByKey
 from apache_beam import FlatMap
 from apache_beam import Map
+import logging
 from math import sin, cos, atan2
+import numpy as np
 from datetime import timedelta, datetime
 from collections import namedtuple
 from pipeline.utils.distance import distance as compute_distance_km
@@ -21,15 +23,22 @@ Implied = namedtuple("Implied",
      "d_next_anchorage", "t_next_anchorage", "d_prev_anchorage", "t_prev_anchorage",
      "n_nbrs"])
 
+Latlon = namedtuple("Latlon", ['lat', 'lon'])
+
+# TODO: could use np.nan here and then replace with mean value for this vessel at the end?
+DEFAULT_DISTANCE = 10000
+DEFAULT_TIME = 30 * 24 * 60 * 60
+
 class CreateFeatures(PTransform):
 
     @staticmethod
-    def _implied_values(records):
+    def _implied_values(records, starts, ends):
         rcd0 = records[0]
         for rcd1 in records[1:]:
             t = mean_time(rcd0.timestamp, rcd1.timestamp)
             lat = mean(rcd0.lat, rcd1.lat)
             lon = mean(rcd0.lon, rcd1.lon)
+            vessel_latlon = Latlon(lat, lon)
             reported_speed = mean(rcd0.speed_knots, rcd1.speed_knots)
             reported_course = mean(rcd0.course, rcd1.course)
             vx = 0.5 * (cos(rcd0.course) * rcd0.speed_knots + cos(rcd1.course) * rcd1.speed_knots)
@@ -37,24 +46,58 @@ class CreateFeatures(PTransform):
             implied_speed = (vx ** 2 + vy ** 2) ** 0.5
             implied_course = atan2(vy, vx)
             d_shore = mean(rcd0.distance_from_shore_km, rcd1.distance_from_shore_km)
-            # TODO: implement once we have tagged values
-            d_next_anchorage = 0
-            t_next_anchorage = 0
-            d_prev_anchorage = 0
-            t_prev_anchorage = 0
+            # We search starts to find last, because we want to get current port if we are
+            # in port. Vice-versa for next            
+            last_i = np.searchsorted(starts[:, 0], t, side='right') - 1
+            next_i = np.searchsorted(ends[:, 0], t, side='left') + 1
+            # Defaults
+            d_prev_anchorage = d_next_anchorage = DEFAULT_DISTANCE
+            t_prev_anchorage = t_next_anchorage = DEFAULT_TIME
+            if 0 <= last_i < len(starts):
+                port_t, port_lat, port_lon = starts[last_i]
+                port_latlon = Latlon(port_lat, port_lon)
+                d_prev_anchorage = compute_distance_km(vessel_latlon, port_latlon)
+                t_prev_anchorage = (t - port_t).total_seconds()
+                assert t_prev_anchorage >= 0
+            if 0 <= next_i < len(ends):
+                port_t, port_lat, port_lon = ends[next_i]
+                port_latlon = Latlon(port_lat, port_lon)
+                d_next_anchorage = compute_distance_km(vessel_latlon, port_latlon)
+                t_next_anchorage = (port_t - t).total_seconds()
+                assert t_next_anchorage >= 0        
+            #TODO: implement when we have neighbor counts
             n_nbrs = 0
             yield Implied(t, lat, lon, reported_speed, reported_course,
                          implied_speed, implied_course, d_shore, d_next_anchorage, 
                          t_next_anchorage, d_prev_anchorage, t_prev_anchorage, n_nbrs)
+            rcd0 = rcd1
 
 
     def create_features(self, item):
-        vessel_id, records = item
-        records = list(records)
-        records.sort(key = lambda x: x.timestamp) # TODO: remove once this is done in the thinning step
+        # Because we cogroup on something already grouped, we get [records]
+        # Why second level though? TODO: figure out
+        vessel_id, (raw_records, port_visits) = item  
+        raw_records = list(raw_records)
+        if not raw_records:
+            return           
+        records = list(raw_records[0])
+        logging.info("RECORDS: 0  %s", type(records))
+        logging.info("RECORDS: 1 %s", len(records))
+        records.sort(key = lambda x: x.timestamp) 
         if len(records) < 3:
             return
-        implied = iter(self._implied_values(records))
+        if len(port_visits):
+            starts = [(x.start_timestamp, x.start_lat, x.start_lon) for x in port_visits]
+            starts.sort()
+            starts = np.array(starts)
+            ends = [(x.end_timestamp, x.end_lat, x.end_lon) for x in port_visits]
+            ends.sort()
+            ends = np.array(ends)
+        else:
+            starts = ends = np.zeros([0, 3], dtype=float)
+        logging.info("STARTS: %s %s", starts.shape, ends.shape)
+
+        implied = iter(self._implied_values(records, starts, ends))
         imp0 = implied.next()
         for imp1 in implied:
             lat = mean(imp0.lat, imp1.lat)

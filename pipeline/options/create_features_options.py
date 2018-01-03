@@ -16,6 +16,8 @@ class CreateFeaturesOptions(PipelineOptions):
                             help='Final date')
         required.add_argument('--source_table', required=True,
                             help="BigQuery table where source data is located" )
+        required.add_argument('--visits_table', required=True,
+                            help="BigQuery table where source data is located" )
         required.add_argument('--sink_table', required=True,
                             help="BigQuery table where destination table is placed.")
 

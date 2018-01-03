@@ -6,10 +6,13 @@ from pipeline.transforms.trim_stationary_periods import TrimStationaryPeriods
 from pipeline.transforms.sink import Sink
 from pipeline.objects.location_record import LocationRecord
 from pipeline.objects.feature import Feature
+from pipeline.objects.port_visit import PortVisit
+from pipeline.objects.namedtuples import _s_to_datetime
 from pipeline.options.create_features_options import CreateFeaturesOptions
 from pipeline.schemas.output import build as build_output_schema
 from apache_beam import io
 from apache_beam.pvalue import AsList
+from apache_beam import CoGroupByKey
 from apache_beam import Flatten
 from apache_beam import Map
 from apache_beam import Pipeline
@@ -17,6 +20,7 @@ from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.runners import PipelineState
 from apache_beam.transforms.window import TimestampedValue
 from pipe_tools.io import WriteToBigQueryDatePartitioned
+from collections import namedtuple
 import datetime
 import logging
 
@@ -52,6 +56,34 @@ def create_queries(options, start_date, end_date):
 
 
 
+VISIT_PADDING_DAYS = 30
+
+def create_visit_queries(options, start_date, end_date):
+    create_options = options.view_as(CreateFeaturesOptions)
+    template = """
+    SELECT
+      vessel_id,
+      FLOAT(TIMESTAMP_TO_MSEC(start_timestamp)) / 1000  AS start_timestamp,
+      start_lat,
+      start_lon,
+      FLOAT(TIMESTAMP_TO_MSEC(end_timestamp)) / 1000  AS end_timestamp,
+      end_lat,
+      end_lon
+    FROM
+      TABLE_DATE_RANGE([{table}], 
+                            TIMESTAMP('{start:%Y-%m-%d}'), TIMESTAMP('{end:%Y-%m-%d}'))
+    """
+    # Pad start date to capture long visits vessels are sharded by start date.
+    start = start_date - datetime.timedelta(days=VISIT_PADDING_DAYS)
+    return PortVisit.create_queries(create_options.visits_table, start, end_date, template)
+
+
+def create_tagged_visit(x):
+    x['start_timestamp'] = _s_to_datetime(x['start_timestamp'])
+    x['end_timestamp'] = _s_to_datetime(x['end_timestamp'])
+    return (x['vessel_id'], PortVisit(**x))
+
+
 def run(options):
 
     p = Pipeline(options=options)
@@ -73,12 +105,28 @@ def run(options):
     sources = [(p | "Read_{}".format(i) >> io.Read(io.gcp.bigquery.BigQuerySource(query=x)))
                     for (i, x) in enumerate(create_queries(options, start_date, end_date))]
 
-    (
-        sources
-        | Flatten()
+    visit_sources = [(p | "Read_visits_{}".format(i) >> io.Read(io.gcp.bigquery.BigQuerySource(query=x)))
+                    for (i, x) in enumerate(create_visit_queries(options, start_date, end_date))]
+
+
+    # Other inputs: 
+    #  - nbr_counts (from encounters_table)
+    #  - Port events: from port (events table)
+    #  - Cogroup by key on vessel_id, then simply add.
+    vessel_locations = (sources
+        | "FlattenLocations" >> Flatten()
         | LocationRecord.FromDict()
         | Resample(increment_min=15, max_gap_min=120)
         | TrimStationaryPeriods(max_distance_km=0.8, min_period_minutes=60*48)
+        )
+
+    port_visits = (visit_sources 
+        | "FlattenVists" >> Flatten()
+        | Map(create_tagged_visit)
+        )
+        
+    ((vessel_locations, port_visits)
+        | CoGroupByKey()
         | CreateFeatures() # start_date, end_date) #TODO: trim by start, end dates
         | Feature.ToDict()
         | Map(lambda x: TimestampedValue(x, x['timestamp']))

@@ -25,10 +25,6 @@ RUN  \
   gcloud config set component_manager/disable_update_check true && \
   gcloud config set metrics/environment github_docker_image
 
-
-# Install extra packages
-RUN pip install ujson more_itertools statistics pytz s2sphere numpy tensorflow https://api.github.com/repos/GlobalFishingWatch/pipe-tools/tarball/14-logging-options
-
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
 
@@ -36,4 +32,6 @@ VOLUME ["/root/.config"]
 COPY . /opt/project
 RUN pip install .
 
+# Setup the entrypoint for quickly executing the pipelines
+ENTRYPOINT ["python", "-m", "pipeline"]
 

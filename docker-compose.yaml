@@ -1,26 +1,22 @@
 version: '2'
-
+# [TODO]: Replace pipe-template with pipe-codename in this file, where codename
+# is the codename for your project.
 services:
-  create_features:
-    image: gfw/pipe-nnet
+  pipeline:
+    image: gfw/pipe-template
     build: .
-    entrypoint: ["python", "-m", "pipeline.create_features"]  
     volumes:
       - ".:/opt/project"
       - "gcp:/root/.config/"
-  shard_features:
-    image: gfw/pipe-nnet
-    build: .
-    entrypoint: ["python", "-m", "pipeline.shard_features"]  
-    volumes:
-      - ".:/opt/project"
-      - "gcp:/root/.config/"
+
   gcloud:
-    image: gfw/pipe-nnet
+    image: gfw/pipe-template
     build: .
     entrypoint: gcloud
     volumes:
       - "gcp:/root/.config/"
+
 volumes:
   gcp:
-    external: True
+
+

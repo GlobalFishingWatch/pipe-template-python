@@ -1,91 +1,52 @@
-# NNet Pipeline
+# Dataflow pipeline template
 
-* `create_features` - create nnet features sharded by time.
+This repository is a template for python dataflow pipelines at Global Fishing
+Watch. It's intended to be cloned and used as a template for new micropipelines
+using apache beam in the google cloud dataflow platform.
 
-* `shard_features` - shard nnet featues by mmsi
+It contains all the plumbing needed to validate and parse command line
+arguments, as well as reading data from a source bigquery table and dumping the
+results in another sink bigquery table.
 
-* `run_inference` - see classification pipeline for now.
+## Usage
 
-* `annotate_results` - waiting on unique message id.
+Clone the repository, delete the `.git` and run `git init` to have a fresh
+repository ready to customize.
 
-This pipeline generates features for the nnet.
+You'll need to take a look at a couple of files that you need to customize
+before starting:
 
+* Customize the name and description of your project at `setup.py` and the
+  docker image name at `docker-compose.yaml`. Look for `[TODO]` marks for
+instructions on what to change and how.
 
-# Running
+* Customize the arguments that are needed to run your pipeline. These are
+  spread at 3 different files:
 
-## Dependencies
+    * `pipeline/options/all.py`: Contains options that are required for both
+      local and remote runs.
 
-You just need [docker](https://www.docker.com/) and
-[docker-compose](https://docs.docker.com/compose/) in your machine to run the
-pipeline. No other dependency is required.
+    * `pipeline/options/local.py`: Contains options that are required only on
+      local runs.
 
-## Setup
+    * `pipeline/options/remote.py`: Contains options that are required only on
+      remote runs.
 
-The pipeline reads it's input from BigQuery, so you need to first authenticate
-with your google cloud account inside the docker images. If you have already
-authenticated another pipeline that uses this same structure and the docker
-volume `gcp` exists, you don't need to do anything. Otherwise you need to run
-the following two commands and follow the instructions:
+* Customize the bigquery schemas for inputs and outputs at `pipeline/schemas/input.py`
+  and `pipeline/schemas/output.py`.
 
-```
-docker volume create --name=gcp
-docker-compose run gcloud auth application-default login
-```
+* Create a sample query to run your pipeline in local test mode. Take a look at
+  `examples/local.sql` and customize for what you need here. Take care to only
+return a few rows here so that local test runs are quick and cheap.
 
-## CLI
+* Create the transforms you are going to use at `pipeline/transforms/`. See
+  `pipeline/transforms/sample.py` for a simple sample transform.
 
-The pipeline includes a CLI that can be used to start both local test runs and
-remote full runs. Just run `docker-compose run pipeline --help` and follow the
-instructions there.
+* Define your pipeline at `pipeline/definition.py` by composing the transforms
+  you created.
 
-### Examples
-
-    docker-compose run create_features \
-                          --start_date=2016-01-07 \
-                          --end_date=2016-01-14 \
-                          --source_table=world-fishing-827:pipeline_classify_p_p516_daily \
-                          --visits_table=world-fishing-827:machine_learning_dev_ttl_30d.visits_events_sharded \
-                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
-                          --project=world-fishing-827 \
-                          --temp_location=gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
-                          --job_name=pipe-nnet-test \
-                          --max_num_workers 200 \
-                          --requirements_file=./requirements.txt \
-                          --setup_file=./setup.py \
-                          --runner=DataflowRunner
-
-
-    docker-compose run create_features \
-                          --start_date=2012-01-01 \
-                          --end_date=2017-12-31 \
-                          --source_table=world-fishing-827:pipeline_classify_p_p516_daily \
-                          --sink_table=world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
-                          --project=world-fishing-827 \
-                          --temp_location=gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
-                          --job_name=pipe-nnet-test \
-                          --max_num_workers 200 \
-                          --requirements_file=./requirements.txt \
-                          --setup_file=./setup.py \
-                          --runner=DataflowRunner
-
-
-
-
-Sharding.
-
-    docker-compose run shard_features \
-                          --start-date 2012-01-01 \
-                          --end-date 2017-12-31 \
-                          --sink-table world-fishing-827:machine_learning_dev_ttl_30d.features_test_all \
-                          --temp-gcs-location gs://world-fishing-827-dev-ttl30d/scratch/nnet-features \
-                          --shard-location gs://world-fishing-827-dev-ttl30d/features/test-py-features-all \
-                          remote \
-                          --project world-fishing-827 \
-                          --temp_location gs://machine-learning-dev-ttl-30d/scratch/nnet-features \
-                          --job_name pipe-nnet-shard-test \
-                          --max_num_workers 200 \
-                          --requirements_file ./requirements.txt
-
+* Copy `README.template.md` to `README.md` and customize with your project
+  documentation. Look for `[TODO]` marks and complete as needed.
 
 # License
 

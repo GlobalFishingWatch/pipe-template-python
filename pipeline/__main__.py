@@ -1,13 +1,10 @@
-from pipeline.shard_definition import PipelineDefinition
+from pipeline.definition import PipelineDefinition
 import apache_beam as beam
 import logging
 import pipeline.options.parser as parser
 
-#TOOD: use Pauls options.
-#TODO, two parsers.
-
 def run():
-    (options, pipeline_options) = parser.parse(shard_only=True)
+    (options, pipeline_options) = parser.parse()
 
     definition = PipelineDefinition(options)
     pipeline = definition.build(beam.Pipeline(options=pipeline_options))
@@ -19,4 +16,3 @@ def run():
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.DEBUG)
     run()
-

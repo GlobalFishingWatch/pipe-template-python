@@ -107,4 +107,8 @@ venv.bak/
 
 output/
 
+#PyCharm
 .idea/
+
+#OSX
+.DS_Store

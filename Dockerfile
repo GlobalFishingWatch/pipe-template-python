@@ -30,8 +30,8 @@ VOLUME ["/root/.config"]
 
 # Setup local application dependencies
 COPY . /opt/project
-RUN pip install .
+RUN pip install --process-dependency-links -e .
 
 # Setup the entrypoint for quickly executing the pipelines
-ENTRYPOINT ["python", "-m", "pipeline"]
+ENTRYPOINT ["scripts/run.sh"]
 

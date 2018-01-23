@@ -6,7 +6,7 @@ using apache beam in the google cloud dataflow platform.
 
 It contains all the plumbing needed to validate and parse command line
 arguments, as well as reading data from a source bigquery table and dumping the
-results in another sink bigquery table.
+results in another bigquery table.
 
 ## Usage
 
@@ -16,37 +16,30 @@ repository ready to customize.
 You'll need to take a look at a couple of files that you need to customize
 before starting:
 
-* Customize the name and description of your project at `setup.py` and the
-  docker image name at `docker-compose.yaml`. Look for `[TODO]` marks for
-instructions on what to change and how.
+* rename the folder `pipe_template` to `pipe_myproject` (call it whatever your project name is)
+  You will need to replace `pipe_template` with `pipe_project` gobally in the import statement 
+   in all `.py` files.  (Pycharm refactor will do this for you automagically)
 
-* Customize the arguments that are needed to run your pipeline. These are
-  spread at 3 different files:
+* Customize the name and description of your project. Look for `[TODO]` marks for
+instructions on what to change and how in these files
+    - `setup.py`
+    - `pipe_template.__init__.py`
+    - `docker-compose.yaml`
+    - `airflow/pipe-template-dag.py`
+    - `airflow/post_install.sh`
 
-    * `pipeline/options/all.py`: Contains options that are required for both
-      local and remote runs.
-
-    * `pipeline/options/local.py`: Contains options that are required only on
-      local runs.
-
-    * `pipeline/options/remote.py`: Contains options that are required only on
-      remote runs.
-
-* Customize the bigquery schemas for inputs and outputs at `pipeline/schemas/input.py`
-  and `pipeline/schemas/output.py`.
-
-* Create a sample query to run your pipeline in local test mode. Take a look at
-  `examples/local.sql` and customize for what you need here. Take care to only
-return a few rows here so that local test runs are quick and cheap.
-
-* Create the transforms you are going to use at `pipeline/transforms/`. See
-  `pipeline/transforms/sample.py` for a simple sample transform.
-
-* Define your pipeline at `pipeline/definition.py` by composing the transforms
-  you created.
+* Copy this file to a temporary name, delete it when you are done
 
 * Copy `README.template.md` to `README.md` and customize with your project
   documentation. Look for `[TODO]` marks and complete as needed.
+
+* Follow the setup steps in the new README.md and make sure everything works
+
+* Begin wrting code that will do work
+    - Set command line options in `pipe_myproject/options/options.py`
+    - Create one or more transforms that will do the work modeled after in `pipe_myproject/trasform/addfield.py`
+    - Construct a dataflow pipeline in `pipe_myproject/pipeline.py`
+    - Modify unit tests in `tests`
 
 # License
 
